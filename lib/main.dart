@@ -1,99 +1,98 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const ListaAfazeres());
+  runApp(TaskApp());
 }
 
-class ListaAfazeres extends StatefulWidget {
-  const ListaAfazeres({super.key});
-
-  @override
-  State<ListaAfazeres> createState() => _ListaAfazeresState();
-}
-
-class _ListaAfazeresState extends State<ListaAfazeres> {
-  List<Tarefa> tarefas = [];
-  TextEditingController controlador = TextEditingController();
-
+class TaskApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Lista de Afazeres Tunadíssima Turbo',
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Lista de Afazeres'),
-        ),
-        body: Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                itemCount: tarefas.length,
-                itemBuilder: (context, index) {
-                  return CheckboxListTile(
-                    value: tarefas[index].status,
-                    onChanged: (bool? novoValor) {
-                      setState(() {
-                        tarefas[index].status = novoValor!;
-                      });
-                    },
-                    title: Text(tarefas[index].titulo),
-                  );
-                },
-              ),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      decoration: const InputDecoration(
-                        hintText: 'Descrição',
-                        border: OutlineInputBorder(),
-                      ),
-                      controller: controlador,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SizedBox(
-                    height: 55,
-                    child: ElevatedButton(
-                      style: ButtonStyle(
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(0),
-                          ),
-                        ),
-                      ),
-                      onPressed: () {
-                        if (controlador.text.isNotEmpty) {
-                          setState(() {
-                            tarefas.add(Tarefa(
-                                titulo: controlador.text, status: false));
-                            controlador.clear();
-                          });
-                        }
-                      },
-                      child: const Text('Adicionar'),
-                    ),
-                  ),
-                )
-              ],
-            ),
-          ],
-        ),
+      title: 'Task App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
+      home: TaskPage(),
     );
   }
 }
 
-class Tarefa {
-  final String titulo;
-  bool status;
+class TaskPage extends StatefulWidget {
+  @override
+  _TaskPageState createState() => _TaskPageState();
+}
 
-  Tarefa({required this.titulo, required this.status});
+class _TaskPageState extends State<TaskPage> {
+  List<String> tasks = [];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Tasks'),
+      ),
+      body: ListView.builder(
+        itemCount: tasks.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(tasks[index]),
+            trailing: IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () {
+                setState(() {
+                  tasks.removeAt(index);
+                });
+              },
+            ),
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _addTask(context);
+        },
+        child: Icon(Icons.add),
+      ),
+    );
+  }
+
+  void _addTask(BuildContext context) async {
+    String newTask = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        TextEditingController taskController = TextEditingController();
+        return AlertDialog(
+          title: Text('Add Task'),
+          content: TextField(
+            controller: taskController,
+            decoration: InputDecoration(
+              hintText: 'Enter task',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (taskController.text.isNotEmpty) {
+                  Navigator.pop(context, taskController.text);
+                }
+              },
+              child: Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (newTask != null) {
+      setState(() {
+        tasks.add(newTask);
+      });
+    }
+  }
 }
